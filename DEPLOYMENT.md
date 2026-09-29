@@ -1,101 +1,78 @@
-# Thông Tin Deploy — Checkpoint 5
+# CP5 — Render deployment
 
-> Điền file này sau khi deploy xong. `pytest tests/test_cp5.py` đọc file này
-> để tìm địa chỉ service của bạn và gọi thử.
->
-> **Chỉ ghi TÊN biến môi trường, tuyệt đối không dán giá trị API key vào đây.**
-> Repo này công khai — dán khóa vào là mất khóa.
+## Thông tin học viên
 
-## Thông Tin Học Viên
-
-| Mục | Nội dung |
-|-----|----------|
+| Mục | Giá trị |
+|---|---|
 | Họ và tên | Trần Quốc Vương |
 | Mã học viên | 2A202602522 |
-| Repo | https://github.com/Neon310304/K4-L3B-DAY12-TranQuocVuong-2A202602522-CloudServicesAndDeployment |
+| Repository | https://github.com/Neon310304/K4-L3B-DAY12-TranQuocVuong-2A202602522-CloudServicesAndDeployment |
 
 ## Service
 
-| Mục | Nội dung |
-|-----|----------|
-| Public URL | https://TODO-thay-bang-url-that.up.railway.app |
-| Platform | Render (đang chờ Blueprint hoàn tất) |
-| Ngày deploy | (điền ngày) |
+| Mục | Giá trị |
+|---|---|
+| Platform | Render Blueprint |
+| Ngày deploy | 2026-09-29 |
+| Public URL | https://day12-agent-xhlo.onrender.com |
+| Web service | `day12-agent` |
+| State store | Render Key Value `day12-redis` |
 
-## Biến Môi Trường Đã Set Trên Cloud
+`render.yaml` định nghĩa web service và Key Value ở gói `free`. Web service
+build từ Dockerfile. `REDIS_URL` được Render lấy từ `connectionString` nội bộ
+của Key Value. `AGENT_API_KEY` được nhập qua giao diện Render khi tạo Blueprint
+(`sync: false`); giá trị không nằm trong repository hoặc tài liệu này.
 
-Ghi tên biến và **nguồn giá trị**, không ghi giá trị:
+## Cấu hình môi trường
 
-| Biến | Đã set | Ghi chú |
-|------|--------|---------|
-| `PORT` | Chờ deploy | Render tự gán |
-| `AGENT_API_KEY` | Chờ deploy | nhập trong dashboard, không nằm trong repo |
-| `REDIS_URL` | Chờ deploy | từ Render Key Value qua `render.yaml` |
-| `RATE_LIMIT_PER_MINUTE` | Chờ deploy | 10 |
-| `MONTHLY_BUDGET_USD` | Chờ deploy | 10.0 |
-| `LOG_LEVEL` | Chờ deploy | INFO |
+| Tên biến | Nguồn |
+|---|---|
+| `PORT` | Render tự cấp; Dockerfile đọc biến này khi khởi động |
+| `AGENT_API_KEY` | Secret nhập trong dashboard Render |
+| `REDIS_URL` | Render Key Value, tham chiếu từ `render.yaml` |
+| `RATE_LIMIT_PER_MINUTE` | Cấu hình `render.yaml`: 10 |
+| `MONTHLY_BUDGET_USD` | Cấu hình `render.yaml`: 10.0 |
+| `LOG_LEVEL` | Cấu hình `render.yaml`: INFO |
 
-## Lệnh Kiểm Tra
+Chỉ ghi tên biến và nguồn cấp. Không lưu giá trị API key hoặc chuỗi kết nối Redis.
 
-Thay `<URL>` bằng Public URL ở trên:
+## Kiểm tra URL HTTPS thật
 
-```bash
-# 1. Liveness — mong đợi 200 {"status":"ok"}
-curl -i <URL>/health
+Thử từ máy cục bộ sau khi Blueprint live, ngày 2026-09-29. Các dòng bên dưới là
+kết quả HTTP thực tế; phần body đã rút gọn, không chứa secret.
 
-# 2. Readiness — mong đợi 200 {"status":"ready"} (đã nối được Redis)
-curl -i <URL>/ready
+```text
+GET  https://day12-agent-xhlo.onrender.com/health
+200 {"status":"ok","service":"day12-agent","version":"1.0.0"}
 
-# 3. Không có API key — mong đợi 401
-curl -i -X POST <URL>/ask \
-  -H "Content-Type: application/json" \
-  -d '{"question":"Hello"}'
+GET  https://day12-agent-xhlo.onrender.com/ready
+200 {"status":"ready","redis":true}
 
-# 4. Có API key — mong đợi 200 kèm câu trả lời
-curl -i -X POST <URL>/ask \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $AGENT_API_KEY" \
-  -H "X-User-Id: sv-test" \
-  -d '{"question":"Deploy là gì?"}'
+POST https://day12-agent-xhlo.onrender.com/ask  (không gửi API key)
+401 {"detail":"invalid or missing API key"}
 
-# 5. Rate limit — gọi 15 lần, những lần cuối phải trả 429
-for i in $(seq 1 15); do
-  curl -s -o /dev/null -w "%{http_code} " -X POST <URL>/ask \
-    -H "Content-Type: application/json" \
-    -H "X-API-Key: $AGENT_API_KEY" \
-    -H "X-User-Id: sv-test" \
-    -d '{"question":"test"}'
-done; echo
+POST https://day12-agent-xhlo.onrender.com/ask  (có API key, user thử riêng)
+200; response có answer, cost_usd, history_length, tokens, user_id
+
+15 request có API key của cùng một user thử mới:
+200 200 200 200 200 200 200 200 200 200 429 429 429 429 429
 ```
 
-## Kết Quả Chạy Thật
+Kiểm tra lại không cần secret:
 
-Dán output của các lệnh trên vào đây:
-
+```powershell
+curl.exe -i https://day12-agent-xhlo.onrender.com/health
+curl.exe -i https://day12-agent-xhlo.onrender.com/ready
+curl.exe -i -X POST https://day12-agent-xhlo.onrender.com/ask -H 'Content-Type: application/json' -d '{"question":"Hello"}'
 ```
-(điền output)
-```
 
-## Ảnh Chụp Màn Hình
+`DEPLOY_API_KEY` trong `.env` cục bộ dùng cho bài test tùy chọn có xác thực.
+File `.env` được Git bỏ qua.
 
-Đặt ảnh trong thư mục `screenshots/`:
+## Ảnh minh chứng
 
-- `screenshots/dashboard.png` — trang quản lý service trên platform
-- `screenshots/health.png` — kết quả gọi `/health` từ trình duyệt hoặc curl
+- `screenshots/dashboard.png`: dashboard Render, che phần secret.
+- `screenshots/health.png`: trang hoặc kết quả gọi `/health` ở public URL.
 
----
-
-## Nếu Dùng Phương Án Dự Phòng
-
-Không đăng ký được tài khoản cloud? Vẫn nộp được bài, nhưng CP5 tối đa 60% điểm:
-
-1. Đặt `LOCAL_FALLBACK=true` trong `.env`
-2. Chạy `docker compose up -d` rồi kiểm tra `docker compose ps`
-3. Chụp màn hình vào `screenshots/`
-4. Chạy `pytest tests/test_cp5.py -v` — bộ test sẽ tự chuyển sang kiểm tra
-   `http://localhost:8000`
-5. Ghi rõ lý do không deploy được vào phần dưới đây:
-
-```
-(điền lý do nếu dùng phương án dự phòng, ngược lại xóa mục này)
-```
+Ảnh do học viên chụp trực tiếp từ giao diện Render/trình duyệt để chứng minh
+deploy thật. Trạng thái ảnh sẽ được xác nhận khi hai file có trong repository.
