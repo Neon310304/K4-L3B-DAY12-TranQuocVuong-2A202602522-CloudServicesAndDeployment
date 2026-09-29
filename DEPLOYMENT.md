@@ -10,16 +10,16 @@
 
 | Mục | Nội dung |
 |-----|----------|
-| Họ và tên | (điền họ tên) |
-| Mã học viên | (điền mã học viên) |
-| Repo | (điền link repo K4-L3B-DAY12-HoVaTen-MSSV-CloudServicesAndDeployment) |
+| Họ và tên | Trần Quốc Vương |
+| Mã học viên | 2A202602522 |
+| Repo | https://github.com/Neon310304/K4-L3B-DAY12-TranQuocVuong-2A202602522-CloudServicesAndDeployment |
 
 ## Service
 
 | Mục | Nội dung |
 |-----|----------|
 | Public URL | https://TODO-thay-bang-url-that.up.railway.app |
-| Platform | Railway / Render / Cloud Run — (điền platform bạn dùng) |
+| Platform | Render (đang chờ Blueprint hoàn tất) |
 | Ngày deploy | (điền ngày) |
 
 ## Biến Môi Trường Đã Set Trên Cloud
@@ -28,12 +28,12 @@ Ghi tên biến và **nguồn giá trị**, không ghi giá trị:
 
 | Biến | Đã set | Ghi chú |
 |------|--------|---------|
-| `PORT` | ✅ | platform tự gán |
-| `AGENT_API_KEY` | ✅ | đặt trong dashboard, không nằm trong repo |
-| `REDIS_URL` | ✅ | (điền: Redis add-on của platform / Upstash / ...) |
-| `RATE_LIMIT_PER_MINUTE` | ✅ | 10 |
-| `MONTHLY_BUDGET_USD` | ✅ | 10.0 |
-| `LOG_LEVEL` | ✅ | INFO |
+| `PORT` | Chờ deploy | Render tự gán |
+| `AGENT_API_KEY` | Chờ deploy | nhập trong dashboard, không nằm trong repo |
+| `REDIS_URL` | Chờ deploy | từ Render Key Value qua `render.yaml` |
+| `RATE_LIMIT_PER_MINUTE` | Chờ deploy | 10 |
+| `MONTHLY_BUDGET_USD` | Chờ deploy | 10.0 |
+| `LOG_LEVEL` | Chờ deploy | INFO |
 
 ## Lệnh Kiểm Tra
 
