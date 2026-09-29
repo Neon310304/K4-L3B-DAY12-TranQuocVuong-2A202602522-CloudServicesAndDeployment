@@ -60,7 +60,10 @@ class Lifecycle:
         SIGTERM: orchestrator yêu cầu tắt. SIGINT: bạn bấm Ctrl+C.
         """
         for sig in (signal.SIGTERM, signal.SIGINT):
-            self._previous[sig] = signal.getsignal(sig)
+            previous = signal.getsignal(sig)
+            if previous == self.request_shutdown:
+                continue
+            self._previous[sig] = previous
             signal.signal(sig, self.request_shutdown)
 
 

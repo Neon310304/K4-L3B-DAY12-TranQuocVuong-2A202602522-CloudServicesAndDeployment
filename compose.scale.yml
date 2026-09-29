@@ -1,0 +1,6 @@
+# Override the fixed host port so each replica receives its own local port.
+# docker compose -f docker-compose.yml -f compose.scale.yml up -d --scale agent=3 --wait
+services:
+  agent:
+    ports: !override
+      - "127.0.0.1::8000"
